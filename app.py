@@ -12,6 +12,16 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# ── 상단 자동 페이지 네비게이션 바 숨기기 ──
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebarNav"] { display: none; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 # ── 공통 사이드바 ──
 with st.sidebar:
     st.markdown("## 🎓 데이타분석")
@@ -37,11 +47,3 @@ elif page == "📚 과제":
 elif page == "📊 데이터 분석":
     from pages.analysis import render
     render()
-st.markdown(
-    """
-    <style>
-    [data-testid="stSidebarNav"] { display: none; }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
