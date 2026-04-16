@@ -41,73 +41,20 @@ def render():
         unsafe_allow_html=True,
     )
 
-    # ── 자기소개 + 관심 분야 ───────────────────────────────────────
-    col_left, col_right = st.columns([3, 2], gap="large")
+    # ── 자기소개 ───────────────────────────────────────────────────
+    st.subheader("👋 About me")
+    intro_text = st.text_area(
+        "자기소개를 입력하세요",
+        value="""■ 저는
 
-    with col_left:
-        st.subheader("👋 About me")
-        intro_text = st.text_area(
-            "자기소개를 입력하세요",
-            value="""■ 컴퓨터공학 학사 / 수학교육 석사 / AI융합교육전공 석사과정
-
+26년 가까이 교단에 서며
+학생들이 언제 진짜로 배우는가를 고민해왔습니다.
 
 학생의 사고력과 개념적 이해를 이끌어내는 수업을 실천하고 있으며 질문하고, 탐구하고, 기록을 통해
 성장하는 과정 중심 수업을 지향합니다.""",
-            height=170,
-            label_visibility="collapsed",
-        )
-
-        st.divider()
-
-        st.subheader("🛠️ 기술 스택")
-        skill_cols = st.columns(3)
-        skills = {
-            "언어": ["Python", "SQL", "R", "JavaScript"],
-            "프레임워크": ["Streamlit", "FastAPI", "Pandas", "Scikit-learn"],
-            "도구": ["Git", "Docker", "VS Code", "Jupyter"],
-        }
-        for idx, (category, items) in enumerate(skills.items()):
-            with skill_cols[idx]:
-                st.markdown(f"**{category}**")
-                for item in items:
-                    st.markdown(
-                        f'<span style="display:inline-block; background:#e8f4fd; color:#1e6fa5; '
-                        f'padding:3px 10px; border-radius:99px; font-size:0.82rem; margin:2px 2px;">{item}</span>',
-                        unsafe_allow_html=True,
-                    )
-
-    with col_right:
-        st.subheader("🎯 관심 분야")
-        interests = {
-            "🤖 머신러닝 / 딥러닝": 90,
-            "📊 데이터 시각화":      85,
-            "🔤 자연어 처리(NLP)":   75,
-            "🌐 웹 개발":            65,
-            "☁️ 클라우드 (AWS)":     55,
-        }
-        for field, level in interests.items():
-            st.markdown(f"**{field}**")
-            st.progress(level / 100, text=f"{level}%")
-            st.markdown("<div style='margin-bottom:8px'></div>", unsafe_allow_html=True)
-
-        st.divider()
-
-        st.subheader("📅 주요 활동")
-        activities = [
-            ("2024.09", "AI 스터디 그룹 창설"),
-            ("2024.06", "데이터 분석 공모전 장려상"),
-            ("2024.03", "오픈소스 기여 시작"),
-            ("2023.12", "캡스톤 프로젝트 최우수"),
-            ("2023.06", "컴퓨터공학과 수석 장학금"),
-        ]
-        for date, event in activities:
-            st.markdown(
-                f'<div style="display:flex; gap:12px; align-items:flex-start; margin-bottom:10px;">'
-                f'<span style="background:#f0fdf4; color:#166534; padding:2px 8px; border-radius:6px; '
-                f'font-size:0.78rem; white-space:nowrap; margin-top:2px;">{date}</span>'
-                f'<span style="font-size:0.92rem;">{event}</span></div>',
-                unsafe_allow_html=True,
-            )
+        height=200,
+        label_visibility="collapsed",
+    )
 
     # ── 연락처 카드 ───────────────────────────────────────────────
     st.divider()
