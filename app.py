@@ -37,3 +37,11 @@ elif page == "📚 과제":
 elif page == "📊 데이터 분석":
     from pages.analysis import render
     render()
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebarNav"] { display: none; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
