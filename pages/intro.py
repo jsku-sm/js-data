@@ -8,7 +8,6 @@ from pathlib import Path
 
 
 def _img_to_base64(img_path: str) -> str:
-    """이미지 파일을 base64 문자열로 변환"""
     with open(img_path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
@@ -21,26 +20,27 @@ def render():
         img_b64 = _img_to_base64(str(img_path))
         profile_html = f"""
             <div style="
-                width: 120px; height: 120px;
+                width: 130px; height: 130px;
                 border-radius: 50%;
                 overflow: hidden;
                 margin: 0 auto 20px;
                 border: 4px solid #4a9eff;
-                box-shadow: 0 0 20px rgba(74,158,255,0.4);
+                box-shadow: 0 0 20px rgba(74,158,255,0.5);
+                background: white;
             ">
                 <img src="data:image/jpeg;base64,{img_b64}"
-                     style="width:100%; height:100%; object-fit:cover;" />
+                     style="width:100%; height:100%; object-fit:cover; object-position:center top;" />
             </div>
         """
     else:
         profile_html = """
             <div style="
-                width: 120px; height: 120px;
+                width: 130px; height: 130px;
                 border-radius: 50%;
                 background: linear-gradient(135deg, #4a9eff, #a855f7);
                 margin: 0 auto 20px;
                 display: flex; align-items: center; justify-content: center;
-                font-size: 48px; line-height: 120px;
+                font-size: 60px; line-height: 130px;
             ">🎓</div>
         """
 
@@ -64,7 +64,6 @@ def render():
             <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
                 <span style="background:#1e3a5f; color:#60a5fa; padding:6px 16px; border-radius:99px; font-size:0.85rem;">📍 숙명여자대학교</span>
                 <span style="background:#1e3a5f; color:#60a5fa; padding:6px 16px; border-radius:99px; font-size:0.85rem;">📧 scatchi@sookimyung.ac.kr</span>
-                <span style="background:#1e3a5f; color:#60a5fa; padding:6px 16px; border-radius:99px; font-size:0.85rem;">🐙 </span>
             </div>
         </div>
         """,
