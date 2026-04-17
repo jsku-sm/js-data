@@ -84,5 +84,5 @@ def render():
 
     contact_card(c1, "📧", "이메일",   "scatchi@sookimyung.ac.kr", "#3b82f6")
     contact_card(c2, "🐙", "GitHub",   "",                          "#8b5cf6")
-    contact_card(c3, "💼", "LinkedIn", "",                          "#0ea5e9")
+    contact_card(c3, "💼", "In", "",                          "#0ea5e9")
     contact_card(c4, "📝", "블로그",   "",                          "#ec4899")
