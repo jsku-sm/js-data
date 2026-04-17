@@ -43,7 +43,7 @@ def render():
     if selected == "📊 과제 1 — Z세대 청소년 신뢰·행복도 분석":
         _render_assignment1()
     else:
-        _render_assignment2()
+        st.info("💬 과제 2는 준비 중입니다. 😊")
 
 
 # ══════════════════════════════════════════════════════════════════
