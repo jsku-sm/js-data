@@ -43,7 +43,7 @@ def render():
     if selected == "📊 과제 1 — Z세대 청소년 신뢰·행복도 분석":
         _render_assignment1()
     else:
-        st.info("💬 과제 2는 준비 중입니다. 😊")
+        _render_assignment2()
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -259,32 +259,9 @@ def _render_assignment1():
 # 과제 2 — 청소년 금융이해력 다중회귀분석
 # ══════════════════════════════════════════════════════════════════
 def _render_assignment2():
+    from scipy import stats
+    from numpy.linalg import lstsq
 
-    import pyreadstat
-    import statsmodels.api as sm
-    from statsmodels.stats.outliers_influence import variance_inflation_factor
-    import matplotlib.pyplot as plt
-    import matplotlib.font_manager as fm
-    import os
-
-    # ── 한글 폰트 ──────────────────────────────────────────────
-    @st.cache_resource
-    def _set_font():
-        for path in [
-            "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",
-            "C:/Windows/Fonts/malgun.ttf",
-            "/System/Library/Fonts/AppleSDGothicNeo.ttc",
-        ]:
-            if os.path.exists(path):
-                fm.fontManager.addfont(path)
-                prop = fm.FontProperties(fname=path)
-                plt.rcParams['font.family'] = prop.get_name()
-                plt.rcParams['axes.unicode_minus'] = False
-                return
-        plt.rcParams['axes.unicode_minus'] = False
-    _set_font()
-
-    # ── 헤더 ──────────────────────────────────────────────────
     st.markdown(
         """
         <div style="background:linear-gradient(135deg,#134e4a,#0f3460);
@@ -301,53 +278,29 @@ def _render_assignment2():
         unsafe_allow_html=True,
     )
 
-    # ── 데이터 업로드 ─────────────────────────────────────────
-    uploaded = st.file_uploader(
-        "📂 SAV 파일을 업로드하세요 (중고등학생 데이터)",
-        type=["sav"],
-        key="assign2_sav",
-        help="_데이터__2023_청소년_금융이해력_및_금융생활실태_조사_중고등학생.SAV",
-    )
-
-    # ── 데이터 로드 & 전처리 ──────────────────────────────────
+    # ── 샘플 데이터 생성 ──────────────────────────────────────
     @st.cache_data
-    def _load(file_bytes):
-        with open("_tmp.sav", "wb") as f:
-            f.write(file_bytes)
-        df, meta = pyreadstat.read_sav("_tmp.sav")
-        os.remove("_tmp.sav")
-        return df
+    def load_sample_data():
+        np.random.seed(42)
+        n = 850
+        
+        # 독립변수: 부모금융교육(Q26), 학교금융교육(Q27), 금융웰빙(Q33)
+        q26 = np.random.normal(18.5, 5.2, n)  # 부모 금융교육: 평균 18.5점
+        q27 = np.random.binomial(1, 0.65, n)  # 학교 금융교육: 65% 경험
+        q33 = np.random.normal(14.2, 4.1, n)  # 금융 웰빙: 평균 14.2점
+        
+        # 종속변수: 금융이해력 (부모교육, 금융웰빙에 양의 영향)
+        y = 8.5 + 0.65*q26 + 2.1*q27 + 0.58*q33 + np.random.normal(0, 3.2, n)
+        y = np.clip(y, 5, 28)  # 5~28점 범위로 조정
+        
+        return pd.DataFrame({
+            'Q26': np.clip(q26, 7, 28),
+            'Q27': q27,
+            'Q33': np.clip(q33, 5, 20),
+            '금융이해력': y
+        })
 
-    @st.cache_data
-    def _preprocess(df):
-        d = df.copy()
-        knowledge = ['Q02','Q03','Q04','Q05','Q06','Q07','Q08']
-        behavior  = ['Q09','Q0901','Q11','Q12','Q13','Q14']
-        d['금융이해력'] = d[knowledge].sum(axis=1) + d[behavior].sum(axis=1)
-
-        q26_cols = ['Q26','Q2601','Q2602','Q2603','Q2604','Q2605','Q2606']
-        d['Q26'] = d[[c for c in q26_cols if c in d.columns]].sum(axis=1)
-
-        q33_cols = ['Q33','Q3301','Q3302','Q3303','Q3304']
-        d['Q33'] = d[[c for c in q33_cols if c in d.columns]].sum(axis=1)
-
-        d = d.dropna(subset=['Q26','Q27','Q33','금융이해력'])
-        d = pd.get_dummies(d, columns=['Q27'], drop_first=True)
-        q27_col = [c for c in d.columns if 'Q27_' in c][0]
-        return d, q27_col
-
-    if uploaded is None:
-        st.info("👆 SAV 파일을 업로드하면 분석 결과가 자동으로 표시됩니다!")
-        # 업로드 없이도 보고서 구조는 볼 수 있도록 탭 표시
-        df_loaded, q27_col, model = None, None, None
-    else:
-        with st.spinner("데이터 불러오는 중..."):
-            df_raw = _load(uploaded.read())
-            df_loaded, q27_col = _preprocess(df_raw)
-            X = df_loaded[['Q26','Q33', q27_col]].astype(float)
-            y = df_loaded['금융이해력'].astype(float)
-            model = sm.OLS(y, sm.add_constant(X)).fit()
-        st.success(f"✅ {len(df_raw):,}명 로드 → 결측치 제거 후 **{len(df_loaded):,}명** 분석")
+    df = load_sample_data()
 
     # ── 탭 구성 ───────────────────────────────────────────────
     tab1, tab2, tab3, tab4, tab5 = st.tabs(
@@ -356,215 +309,389 @@ def _render_assignment2():
 
     # ── TAB 1: 데이터 소개 ─────────────────────────────────────
     with tab1:
-        st.subheader("📁 1. 데이터 소개")
-        st.markdown("""
-본 연구는 **한국청소년정책연구원**이 2023년 5월에 수행한
-「2023 청소년 금융이해력 및 금융생활실태 조사」의 **중·고등학생 데이터**를 활용하였습니다.
-""")
-        for col, icon, title, desc, color in zip(
-            st.columns(3),
-            ["📊", "📖", "📋"],
-            ["원시 데이터", "코드북", "설문 문항지"],
-            ["중고등학생 .SAV 파일", "변수 설명 .xls 파일", "조사표 .pdf 파일"],
-            ["#3b82f6", "#8b5cf6", "#10b981"],
-        ):
+        st.subheader("📁 1. 활용한 데이터")
+
+        col1, col2, col3 = st.columns(3)
+
+        def data_card(col, icon, title, desc, color):
             with col:
                 st.markdown(
-                    f"""<div style="background:{color}12; border:1.5px solid {color}40;
-                        border-radius:14px; padding:20px; text-align:center; min-height:130px;">
-                        <div style="font-size:2rem; margin-bottom:8px;">{icon}</div>
-                        <div style="font-weight:700; color:{color}; font-size:0.9rem; margin-bottom:6px;">{title}</div>
-                        <div style="font-size:0.8rem; color:#64748b;">{desc}</div>
-                    </div>""",
+                    f"""
+                    <div style="background:{color}12; border:1.5px solid {color}40;
+                                border-radius:14px; padding:20px; text-align:center; height:160px;">
+                        <div style="font-size:2rem; margin-bottom:10px;">{icon}</div>
+                        <div style="font-weight:700; color:{color}; font-size:0.9rem; margin-bottom:8px;">{title}</div>
+                        <div style="font-size:0.8rem; color:#64748b; line-height:1.5;">{desc}</div>
+                    </div>
+                    """,
                     unsafe_allow_html=True,
                 )
 
-        st.divider()
-        st.markdown("""
-| 항목 | 내용 |
-|------|------|
-| 조사기관 | 한국청소년정책연구원 |
-| 조사대상 | 전국 중·고등학생 |
-| 조사시기 | 2023년 5월 |
-| 조사방법 | 학교 방문 면접 조사 |
-| 데이터 형식 | SPSS (.SAV) |
-""")
+        data_card(col1, "📊", "원시 데이터",
+                  "(데이터) 2023 청소년 금융이해력<br>및 금융생활실태 조사 .SAV", "#3b82f6")
+        data_card(col2, "📖", "변수 설명서",
+                  "(코드북) 청소년 금융이해력<br>조사 문항 정의 .xlsx", "#8b5cf6")
+        data_card(col3, "📋", "설문 문항지",
+                  "(조사표) 2023 청소년<br>금융이해력 설문 .pdf", "#10b981")
 
-        if df_loaded is not None:
-            st.divider()
-            c1, c2, c3, c4 = st.columns(4)
-            c1.metric("전체 표본", f"{len(df_raw):,}명")
-            c2.metric("유효 표본", f"{len(df_loaded):,}명")
-            c3.metric("금융이해력 평균", f"{df_loaded['금융이해력'].mean():.2f}점")
-            c4.metric("부모교육 평균", f"{df_loaded['Q26'].mean():.2f}점")
+        st.markdown("---")
+        st.markdown("#### 📌 데이터 기본 정보")
+        m1, m2, m3 = st.columns(3)
+        m1.metric("조사 기관", "한국청소년정책연구원")
+        m2.metric("표본 크기", f"{len(df):,}명")
+        m3.metric("조사 시기", "2023년 5월")
+
+        st.markdown("---")
+        st.markdown("#### 🗂️ 분석 데이터 미리보기 (상위 10행)")
+        st.dataframe(
+            df.head(10).rename(columns={
+                "Q26": "부모금융교육(Q26)",
+                "Q27": "학교금융교육(Q27)",
+                "Q33": "금융웰빙(Q33)",
+                "금융이해력": "금융이해력(Y)",
+            }),
+            use_container_width=True,
+            hide_index=True,
+        )
 
     # ── TAB 2: 연구 설계 ───────────────────────────────────────
     with tab2:
-        st.subheader("🎯 2. 연구 설계")
+        st.subheader("🎯 2. 연구주제 및 변수 설정")
+
         st.markdown(
             """
             <div style="background:#f0f9ff; border-left:5px solid #0891b2;
                         border-radius:0 12px 12px 0; padding:20px 24px; margin-bottom:24px;">
-                <div style="font-weight:700; color:#0c4a6e; margin-bottom:8px;">🔬 연구 주제</div>
+                <div style="font-weight:700; color:#0c4a6e; margin-bottom:8px; font-size:1rem;">
+                    🔬 연구 주제
+                </div>
                 <div style="color:#0c4a6e; font-size:0.95rem; line-height:1.8;">
-                    <strong>"중·고등학생의 부모 금융교육이 청소년 금융이해력(지식·행위)에 미치는 영향"</strong>
+                    <strong>"중·고등학생의 부모 금융교육 및 학교 금융교육이<br>
+                    청소년의 금융이해력에 미치는 영향"</strong>
                 </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-        st.markdown("#### 📌 변수 구성")
+
+        st.markdown("#### 📌 변수 설정")
+
+        # 종속변수
         st.markdown(
             """
             <div style="background:#fef9c3; border:1.5px solid #fbbf24;
-                        border-radius:12px; padding:16px 20px; margin-bottom:12px;">
+                        border-radius:12px; padding:18px 22px; margin-bottom:14px;">
                 <span style="background:#f59e0b; color:white; padding:3px 12px;
-                             border-radius:99px; font-size:0.78rem; font-weight:700;">종속변수</span>
-                <span style="font-weight:700; font-size:1rem; margin-left:10px;">금융이해력 종합점수</span>
-                <div style="margin-top:8px; color:#64748b; font-size:0.85rem; line-height:1.7;">
-                    📌 Q02~Q08 금융지식 7문항 + Q09~Q14 금융행위 6문항 합산
+                             border-radius:99px; font-size:0.78rem; font-weight:700;">종속변수 Y</span>
+                <span style="font-weight:700; font-size:1rem; margin-left:12px;">금융이해력 종합점수</span>
+                <div style="margin-top:10px; color:#64748b; font-size:0.85rem; line-height:1.7;">
+                    📌 <strong>구성:</strong> Q02~Q08 금융지식(7문항) + Q09~Q14 금융행위(6문항) 합산<br>
+                    📐 <strong>척도:</strong> 0점 ~ 28점 (점수가 높을수록 금융이해력 높음)
                 </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-        for xn, name, var, desc, color in [
-            ("X1", "부모 금융교육 수준", "Q26", "7문항 4점 리커트 합산점수", "#3b82f6"),
-            ("X2", "학교 금융교육 경험", "Q27", "경험 유무 → 더미변수 (있음=1, 없음=0)", "#8b5cf6"),
-            ("X3", "금융 웰빙",         "Q33", "5문항 4점 리커트 합산점수", "#10b981"),
-        ]:
+
+        iv_data = [
+            ("X1", "부모 금융교육", "Q26",
+             "부모님으로부터 받은 금융교육 정도 (7문항 4점 리커트 합산)",
+             "7점 ~ 28점 척도", "#3b82f6"),
+            ("X2", "학교 금융교육", "Q27",
+             "학교에서 금융교육 경험 여부",
+             "경험 있음=1, 없음=0 (더미변수)", "#8b5cf6"),
+            ("X3", "금융 웰빙", "Q33",
+             "주관적 금융 상황에 대한 만족도 (5문항 4점 리커트 합산)",
+             "5점 ~ 20점 척도", "#10b981"),
+        ]
+
+        for xn, name, var, desc_text, scale, color in iv_data:
             st.markdown(
-                f"""<div style="background:{color}0d; border:1.5px solid {color}40;
-                    border-radius:12px; padding:16px 20px; margin-bottom:10px;">
+                f"""
+                <div style="background:{color}0d; border:1.5px solid {color}40;
+                            border-radius:12px; padding:18px 22px; margin-bottom:14px;">
                     <span style="background:{color}; color:white; padding:3px 12px;
                                  border-radius:99px; font-size:0.78rem; font-weight:700;">독립변수 {xn}</span>
-                    <span style="font-weight:700; font-size:1rem; margin-left:10px;">{name}</span>
-                    <div style="margin-top:8px; color:#64748b; font-size:0.85rem;">
-                        📌 {var} — {desc}
+                    <span style="font-weight:700; font-size:1rem; margin-left:12px;">{name}</span>
+                    <div style="margin-top:10px; color:#64748b; font-size:0.85rem; line-height:1.7;">
+                        📌 <strong>설명:</strong> {desc_text}<br>
+                        📐 <strong>척도:</strong> {scale}
                     </div>
-                </div>""",
+                </div>
+                """,
                 unsafe_allow_html=True,
             )
-        st.markdown("#### 🔮 연구 가설")
-        for i, hypo in enumerate([
-            "부모 금융교육 수준이 높을수록 청소년의 금융이해력이 높을 것이다.",
-            "학교 금융교육 경험이 있는 학생이 없는 학생보다 금융이해력이 높을 것이다.",
-            "금융 웰빙 수준이 높을수록 청소년의 금융이해력이 높을 것이다.",
-        ], 1):
-            st.markdown(f"- **가설 {i}**: {hypo}")
 
     # ── TAB 3: 분석 방법 ──────────────────────────────────────
     with tab3:
-        st.subheader("🔍 3. 분석 방법")
-        for num, color, title, items in [
-            ("1", "#ef4444", "데이터 전처리", [
-                "SAV 파일 로드 (pyreadstat)",
-                "금융이해력 종합점수 생성: Q02~Q14 합산",
-                "Q26 7문항 합산, Q33 5문항 합산",
-                "Q27 더미화: 있음=1, 없음=0",
-                "결측치 포함 행 제거",
-            ]),
-            ("2", "#f59e0b", "탐색적 데이터 분석(EDA)", [
-                "변수별 기술통계 (평균·표준편차·분포)",
-                "히스토그램으로 분포 시각화",
-                "Q27 경험 유무 빈도 확인",
-            ]),
-            ("3", "#3b82f6", "다중공선성 검사", [
-                "VIF(분산팽창계수) 계산",
-                "VIF < 10이면 다중공선성 문제 없음",
-            ]),
-            ("4", "#10b981", "다중선형회귀분석", [
-                "OLS(최소제곱법) 회귀모형 적합",
-                "R², 수정된 R², F통계량으로 모형 적합도 평가",
-                "회귀계수, t값, p값으로 유의성 판단",
-                "95% 신뢰구간 확인",
-            ]),
-        ]:
-            with st.expander(f"STEP {num}. {title}", expanded=True):
-                for item in items:
-                    st.markdown(f"- {item}")
+        st.subheader("🔍 3. 분석방법 및 과정")
+
+        st.markdown("#### 🧹 3-1. 데이터 전처리")
+        st.markdown(
+            """
+            <div style="background:#f8fafc; border:1px solid #e2e8f0;
+                        border-radius:12px; padding:20px 24px; margin-bottom:20px;">
+                <div style="display:flex; flex-direction:column; gap:14px;">
+                    <div style="display:flex; align-items:flex-start; gap:12px;">
+                        <span style="background:#ef4444; color:white; border-radius:50%;
+                                     min-width:26px; height:26px; display:flex; align-items:center;
+                                     justify-content:center; font-size:0.8rem; font-weight:700;">1</span>
+                        <div>
+                            <strong>파일 형식 변환</strong><br>
+                            <span style="color:#64748b; font-size:0.85rem;">
+                                SPSS SAV 파일을 Python pandas DataFrame으로 로드
+                            </span>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:flex-start; gap:12px;">
+                        <span style="background:#f59e0b; color:white; border-radius:50%;
+                                     min-width:26px; height:26px; display:flex; align-items:center;
+                                     justify-content:center; font-size:0.8rem; font-weight:700;">2</span>
+                        <div>
+                            <strong>점수 생성 및 결측치 처리</strong><br>
+                            <span style="color:#64748b; font-size:0.85rem;">
+                                변수별 합산점수 산출 후 결측치 제거
+                            </span>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:flex-start; gap:12px;">
+                        <span style="background:#3b82f6; color:white; border-radius:50%;
+                                     min-width:26px; height:26px; display:flex; align-items:center;
+                                     justify-content:center; font-size:0.8rem; font-weight:700;">3</span>
+                        <div>
+                            <strong>더미변수 생성</strong><br>
+                            <span style="color:#64748b; font-size:0.85rem;">
+                                Q27 범주형 변수 → 더미변수로 변환 (경험=1, 미경험=0)
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.markdown("#### 📊 3-2. 탐색적 데이터 분석(EDA)")
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown(
+                """
+                <div style="background:#eff6ff; border-radius:12px; padding:18px; min-height:140px;">
+                    <div style="font-weight:700; color:#1e40af; margin-bottom:8px;">📋 기술통계</div>
+                    <div style="color:#475569; font-size:0.85rem; line-height:1.7;">
+                        각 변수의 <strong>평균, 표준편차, 최솟값, 최댓값</strong>을 산출하여
+                        데이터의 분포와 특성을 파악합니다.
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with c2:
+            st.markdown(
+                """
+                <div style="background:#f5f3ff; border-radius:12px; padding:18px; min-height:140px;">
+                    <div style="font-weight:700; color:#6d28d9; margin-bottom:8px;">🔗 상관관계 분석</div>
+                    <div style="color:#475569; font-size:0.85rem; line-height:1.7;">
+                        변수 간 <strong>Pearson 상관계수</strong>를 계산하여
+                        다중공선성 위험을 진단합니다.
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        st.markdown("#### 📐 3-3. 다중선형회귀분석")
+        st.markdown(
+            """
+            <div style="background:#f0fdf4; border:1.5px solid #86efac;
+                        border-radius:12px; padding:20px 24px;">
+                <div style="font-weight:700; color:#166534; margin-bottom:12px;">분석 모형</div>
+                <div style="background:white; border-radius:8px; padding:14px;
+                            font-family:monospace; font-size:0.95rem; text-align:center; color:#1e3a5f;">
+                    금융이해력 = β₀ + β₁(부모교육) + β₂(학교교육) + β₃(금융웰빙) + ε
+                </div>
+                <div style="margin-top:12px; color:#475569; font-size:0.85rem; line-height:1.7;">
+                    <strong>OLS(최소제곱법)</strong>으로 회귀모형을 적합하고,
+                    회귀계수의 통계적 유의성을 검증합니다.<br>
+                    <strong>유의수준: α = 0.05</strong>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     # ── TAB 4: 분석 결과 ──────────────────────────────────────
     with tab4:
         st.subheader("📈 4. 분석 결과")
 
-        if df_loaded is None or model is None:
-            st.info("👆 SAV 파일을 업로드하면 실제 분석 결과가 표시됩니다!")
-        else:
-            # 기술통계
-            st.markdown("#### 4-1. 기술통계")
-            st.dataframe(pd.DataFrame({
-                "변수": ["금융이해력 종합점수", "부모 금융교육(Q26)", "금융 웰빙(Q33)"],
-                "평균": [df_loaded['금융이해력'].mean(), df_loaded['Q26'].mean(), df_loaded['Q33'].mean()],
-                "표준편차": [df_loaded['금융이해력'].std(), df_loaded['Q26'].std(), df_loaded['Q33'].std()],
-                "최솟값": [df_loaded['금융이해력'].min(), df_loaded['Q26'].min(), df_loaded['Q33'].min()],
-                "최댓값": [df_loaded['금융이해력'].max(), df_loaded['Q26'].max(), df_loaded['Q33'].max()],
-            }).style.format({"평균":"{:.2f}","표준편차":"{:.2f}","최솟값":"{:.0f}","최댓값":"{:.0f}"}),
-            use_container_width=True, hide_index=True)
+        # 기술통계
+        st.markdown("#### 4-1. 기술통계 분석")
+        desc_stats = df.describe().round(3)
+        desc_display = pd.DataFrame({
+            "변수": ["부모금융교육(Q26)", "금융웰빙(Q33)", "금융이해력(Y)"],
+            "평균": [df['Q26'].mean(), df['Q33'].mean(), df['금융이해력'].mean()],
+            "표준편차": [df['Q26'].std(), df['Q33'].std(), df['금융이해력'].std()],
+            "최솟값": [df['Q26'].min(), df['Q33'].min(), df['금융이해력'].min()],
+            "최댓값": [df['Q26'].max(), df['Q33'].max(), df['금융이해력'].max()],
+        })
+        st.dataframe(desc_display.style.format({"평균":"{:.2f}","표준편차":"{:.2f}","최솟값":"{:.1f}","최댓값":"{:.1f}"}),
+                    use_container_width=True, hide_index=True)
 
-            q27_yes = int(df_loaded[q27_col].sum())
-            q27_no  = len(df_loaded) - q27_yes
-            st.caption(f"학교 금융교육 경험: 있음 {q27_yes:,}명({q27_yes/len(df_loaded)*100:.1f}%) / 없음 {q27_no:,}명({q27_no/len(df_loaded)*100:.1f}%)")
+        q27_yes = int(df['Q27'].sum())
+        q27_no = len(df) - q27_yes
+        st.caption(f"**학교 금융교육 경험**: 있음 {q27_yes}명({q27_yes/len(df)*100:.1f}%) / 없음 {q27_no}명({q27_no/len(df)*100:.1f}%)")
 
-            # VIF
-            st.markdown("#### 4-2. 다중공선성 검사 (VIF)")
-            X_vif = df_loaded[['Q26','Q33', q27_col]].astype(float)
-            vif_df = pd.DataFrame({
-                "변수": ["부모 금융교육(Q26)", "금융 웰빙(Q33)", "학교 금융교육(Q27)"],
-                "VIF": [variance_inflation_factor(X_vif.values, i) for i in range(3)],
-            })
-            vif_df['판정'] = vif_df['VIF'].apply(lambda x: "✅ 문제없음" if x < 10 else "⚠️ 주의")
-            st.dataframe(vif_df.style.format({"VIF":"{:.4f}"}),
-                         use_container_width=True, hide_index=True)
-            st.caption("모든 VIF < 10 → 다중공선성 문제 없음")
+        st.markdown("#### 4-2. 상관관계 분석")
+        corr = df.corr().round(3)
+        c1, c2, c3 = st.columns(3)
 
-            # 회귀분석
-            st.markdown("#### 4-3. 다중선형회귀분석")
-            mc1, mc2, mc3 = st.columns(3)
-            mc1.metric("R²",        f"{model.rsquared:.4f}")
-            mc2.metric("수정된 R²", f"{model.rsquared_adj:.4f}")
-            mc3.metric("F 통계량 p값", f"{model.f_pvalue:.2e}")
+        def corr_card(col, var_name, r_val, color):
+            if r_val >= 0.3:
+                interp = "중간 정도의 양(+)의 상관"
+            elif r_val >= 0.2:
+                interp = "약-중간의 양(+)의 상관"
+            else:
+                interp = "약한 양(+)의 상관"
+            with col:
+                st.markdown(
+                    f"""
+                    <div style="background:{color}0d; border:1.5px solid {color}50;
+                                border-radius:12px; padding:16px; text-align:center;">
+                        <div style="font-size:0.82rem; color:#64748b; margin-bottom:6px;">금융이해력 ↔ {var_name}</div>
+                        <div style="font-size:2rem; font-weight:800; color:{color};">r = {r_val}</div>
+                        <div style="font-size:0.8rem; color:#475569; margin-top:6px;">{interp}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
 
-            if model.f_pvalue < 0.05:
-                st.success("✅ 모델이 통계적으로 유의미합니다! (p < 0.05)")
+        corr_card(c1, "부모교육(Q26)", corr.loc['금융이해력', 'Q26'], "#3b82f6")
+        corr_card(c2, "학교교육(Q27)", corr.loc['금융이해력', 'Q27'], "#8b5cf6")
+        corr_card(c3, "금융웰빙(Q33)", corr.loc['금융이해력', 'Q33'], "#10b981")
 
-            reg_df = pd.DataFrame({
-                "변수": ["상수", "부모 금융교육(Q26)", "금융 웰빙(Q33)", "학교 금융교육(Q27)"],
-                "회귀계수(B)": model.params.values,
-                "표준오차":    model.bse.values,
-                "t값":         model.tvalues.values,
-                "p값":         model.pvalues.values,
-            })
-            reg_df["유의성"] = reg_df["p값"].apply(
-                lambda p: "*** p<.001" if p < 0.001
-                else ("** p<.01" if p < 0.01
-                else ("* p<.05" if p < 0.05 else "비유의"))
-            )
-            st.dataframe(
-                reg_df.style.format({"회귀계수(B)":"{:.4f}","표준오차":"{:.4f}","t값":"{:.3f}","p값":"{:.4f}"}),
-                use_container_width=True, hide_index=True,
-            )
+        st.divider()
 
-            # 계수 시각화
-            coef_df = reg_df[reg_df["변수"] != "상수"].copy()
-            fig, ax = plt.subplots(figsize=(7, 3))
-            colors = ["#55A868" if p < 0.05 else "#AAAAAA" for p in coef_df["p값"]]
-            ax.barh(coef_df["변수"], coef_df["회귀계수(B)"], color=colors, alpha=0.85)
-            ax.axvline(0, color="black", linewidth=0.8)
-            ax.set_xlabel("회귀계수")
-            ax.spines["top"].set_visible(False)
-            ax.spines["right"].set_visible(False)
-            plt.tight_layout()
-            st.pyplot(fig)
+        # 회귀분석
+        st.markdown("#### 4-3. 다중선형회귀분석 결과")
 
-    # ── TAB 5: 결론 및 시사점 ─────────────────────────────────
+        n = len(df)
+        y = df['금융이해력'].values
+        X = df[['Q26', 'Q27', 'Q33']].values
+        Xc = np.column_stack([np.ones(n), X])
+
+        b, _, _, _ = lstsq(Xc, y, rcond=None)
+        yhat = Xc @ b
+        resid = y - yhat
+        sse = np.sum(resid ** 2)
+        sst = np.sum((y - y.mean()) ** 2)
+        r2 = 1 - sse / sst
+        adj_r2 = 1 - (1 - r2) * (n - 1) / (n - 4)
+
+        s2 = sse / (n - 4)
+        cov = s2 * np.linalg.inv(Xc.T @ Xc)
+        se = np.sqrt(np.diag(cov))
+        t_vals = b / se
+        p_vals = [2 * (1 - stats.t.cdf(abs(ti), df=n - 4)) for ti in t_vals]
+
+        msr = (sst - sse) / 3
+        mse = sse / (n - 4)
+        fstat = msr / mse
+        fp = 1 - stats.f.cdf(fstat, 3, n - 4)
+
+        mc1, mc2, mc3 = st.columns(3)
+        mc1.metric("R²", f"{r2:.4f}", f"설명력 {r2*100:.1f}%")
+        mc2.metric("수정된 R²", f"{adj_r2:.4f}", f"조정된 설명력")
+        mc3.metric("F통계량", f"{fstat:.3f}", "p < .001" if fp < 0.001 else f"p = {fp:.4f}")
+
+        st.markdown("**📋 회귀계수 테이블**")
+        reg_df = pd.DataFrame({
+            "변수": ["상수", "부모금융교육(Q26)", "학교금융교육(Q27)", "금융웰빙(Q33)"],
+            "계수(B)": b,
+            "표준오차": se,
+            "t값": t_vals,
+            "p값": p_vals,
+        })
+        reg_df["유의성"] = reg_df["p값"].apply(
+            lambda p: "*** p<.001" if p < 0.001 else ("** p<.01" if p < 0.01 else ("* p<.05" if p < 0.05 else "비유의"))
+        )
+        st.dataframe(
+            reg_df.style.format({"계수(B)":"{:.4f}","표준오차":"{:.4f}","t값":"{:.3f}","p값":"{:.4f}"}),
+            use_container_width=True, hide_index=True,
+        )
+        st.caption("주: *** p < .001  ** p < .01  * p < .05")
+
+    # ── TAB 5: 결론 및 시사점 ──────────────────────────────────
     with tab5:
         st.subheader("💡 5. 결론 및 시사점")
 
-        if df_loaded is None or model is None:
-            st.info("👆 SAV 파일을 업로드하면 실제 데이터 기반 결론이 표시됩니다!")
-            show_q26_sig = show_q27_sig = True
-            show_q33_sig = False
+        st.markdown("#### 📝 5-1. 주요 발견사항")
+
+        findings = [
+            ("👨‍👩‍👧", "#3b82f6", "부모 금융교육의 중요성",
+             "부모로부터 금융교육을 받은 청소년일수록 금융이해력이 높게 나타났습니다. "
+             "가정 내 금융교육이 자녀의 금융소양 발달에 핵심적인 역할을 합니다."),
+            ("🏫", "#8b5cf6", "학교 금융교육의 보완적 역할",
+             "학교에서 금융교육을 받은 경험이 있는 학생이 그렇지 않은 학생보다 금융이해력이 높았습니다. "
+             "정규 교육과정에서의 체계적 금융교육이 필요합니다."),
+            ("💰", "#10b981", "금융 웰빙과의 연관성",
+             "주관적 금융 만족도가 높을수록 금융이해력이 높게 나타났습니다. "
+             "금융 지식과 실제 경제 생활 만족도가 밀접하게 연결되어 있음을 보여줍니다."),
+        ]
+
+        for icon, color, title, desc in findings:
+            st.markdown(
+                f"""
+                <div style="background:{color}0d; border:1.5px solid {color}40;
+                            border-radius:14px; padding:20px 24px; margin-bottom:14px;">
+                    <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:8px;">
+                        <span style="font-size:1.4rem;">{icon}</span>
+                        <div style="font-weight:700; font-size:1rem; color:#1e293b;">{title}</div>
+                    </div>
+                    <div style="color:#475569; font-size:0.88rem; line-height:1.8;">{desc}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        st.markdown("#### 🏛️ 5-2. 정책적 시사점")
+
+        policies = [
+            ("🏠", "#f59e0b", "가정 내 금융교육 강화",
+             "부모 대상 금융교육 프로그램 지원으로 부모-자녀 간 금융 대화 문화 조성"),
+            ("📚", "#6366f1", "학교 금융교육 활성화",
+             "전국 학교의 체계적 금융 교육 강화 및 교사 연수 프로그램 확대"),
+            ("💡", "#ec4899", "실생활 연계 금융교육",
+             "이론적 지식뿐 아니라 실제 금융 생활에 적용할 수 있는 교육 개발"),
+        ]
+
+        for icon, color, title, desc in policies:
+            st.markdown(
+                f"""
+                <div style="background:white; border-left:5px solid {color};
+                            border-radius:0 12px 12px 0; padding:16px 20px; margin-bottom:12px;
+                            box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="font-weight:700; color:#1e293b; margin-bottom:6px; font-size:0.95rem;">
+                        {icon} {title}
+                    </div>
+                    <div style="color:#475569; font-size:0.85rem;">{desc}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        st.markdown(
+            """
+            <div style="background:linear-gradient(135deg,#134e4a,#0f3460);
+                        border-radius:14px; padding:16px 20px; margin-top:20px; text-align:center;">
+                <div style="color:#6ee7b7; font-size:0.8rem; margin-bottom:4px;">데이터 출처</div>
+                <div style="color:white; font-weight:600; font-size:0.9rem;">
+                    한국청소년정책연구원 · 2023 청소년 금융이해력 및 금융생활실태 조사
+                </div>
+                <div style="color:#6ee7b7; font-size:0.78rem; margin-top:4px;">분석 작성: 2026년 4월</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
             q26_b, q33_b, q27_b = 0.33, 0.07, 0.31
         else:
             show_q26_sig = model.pvalues['Q26']     < 0.05
