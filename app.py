@@ -30,7 +30,7 @@ with st.sidebar:
 
     page = st.radio(
         "페이지 선택",
-        ["🏠 내 소개", "📚 과제", "📊 데이터 분석"],
+        ["🏠 내 소개", "📚 과제"],
         label_visibility="collapsed",
     )
 
@@ -43,7 +43,4 @@ if page == "🏠 내 소개":
     render()
 elif page == "📚 과제":
     from pages.assignment import render
-    render()
-elif page == "📊 데이터 분석":
-    from pages.analysis import render
     render()

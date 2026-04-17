@@ -692,6 +692,23 @@ def _render_assignment2():
             """,
             unsafe_allow_html=True,
         )
+                """,
+                unsafe_allow_html=True,
+            )
+
+        st.markdown(
+            """
+            <div style="background:linear-gradient(135deg,#134e4a,#0f3460);
+                        border-radius:14px; padding:16px 20px; margin-top:20px; text-align:center;">
+                <div style="color:#6ee7b7; font-size:0.8rem; margin-bottom:4px;">데이터 출처</div>
+                <div style="color:white; font-weight:600; font-size:0.9rem;">
+                    한국청소년정책연구원 · 2023 청소년 금융이해력 및 금융생활실태 조사
+                </div>
+                <div style="color:#6ee7b7; font-size:0.78rem; margin-top:4px;">분석 작성: 2026년 4월</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
             q26_b, q33_b, q27_b = 0.33, 0.07, 0.31
         else:
             show_q26_sig = model.pvalues['Q26']     < 0.05
