@@ -58,8 +58,7 @@ def render():
 
 학생의 사고력과 개념적 이해를 이끌어내는 수업을 실천하고 있으며
 질문하고, 탐구하고, 기록을 통해 성장하는 과정 중심 수업을 지향합니다.
-#생각을 설계하다 #성장을 확산하다 #생각하는 교실 #수업을 디자인하다
-#배움을 혁신하다 #기록으로 성장하다 #교실을 바꾸다 #본질로 가르치다
+
 """,
             height=180,
             label_visibility="collapsed",
@@ -82,7 +81,7 @@ def render():
                 unsafe_allow_html=True,
             )
 
-    contact_card(c1, "📧", "이메일",   "scatchi@sookimyung.ac.kr", "#3b82f6")
-    contact_card(c2, "🐙", "GitHub",   "",                          "#8b5cf6")
-    contact_card(c3, "💼", "In", "",                          "#0ea5e9")
-    contact_card(c4, "📝", "블로그",   "",                          "#ec4899")
+    contact_card(c1, "📧", "이메일", "scatchi@sookimyung.ac.kr", "#3b82f6")
+    contact_card(c2, "💼", "인스타", "https://www.instagram.com/gussam@", "#0ea5e9")
+    contact_card(c3, "📝", "블로그", "", "#ec4899")
+    contact_card(c4, "🔗", "링크", "", "#f59e0b")
