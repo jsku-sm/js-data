@@ -59,6 +59,8 @@ def render():
 학생의 사고력과 개념적 이해를 이끌어내는 수업을 실천하고 있으며
 질문하고, 탐구하고, 기록을 통해 성장하는 과정 중심 수업을 지향합니다.
 
+#의미 중심 사고 #F 감성 + T 논리의 공존 #섬세함 / 예민함
+#감정의 깊이 #이지적 긴장감인간적인 허점
 """,
             height=180,
             label_visibility="collapsed",
@@ -83,5 +85,5 @@ def render():
 
     contact_card(c1, "📧", "이메일", "scatchi@sookimyung.ac.kr", "#3b82f6")
     contact_card(c2, "💼", "인스타", "https://www.instagram.com/gussam@", "#0ea5e9")
-    contact_card(c3, "📝", "블로그", "", "#ec4899")
-    contact_card(c4, "🔗", "링크", "", "#f59e0b")
+    contact_card(c3, "📝", "블로그", "https://blog.naver.com/scatchi", "#ec4899")
+   
