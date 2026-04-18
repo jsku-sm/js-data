@@ -32,14 +32,7 @@ def render():
                 unsafe_allow_html=True,
             )
         else:
-            st.markdown(
-                """
-                <div style="display:flex; justify-content:center; align-items:center; height:100%;">
-                    <div style="font-size:6rem;">🎓</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            st.markdown("🎓", unsafe_allow_html=True)
 
     with col_text:
         st.markdown(
@@ -59,18 +52,18 @@ def render():
         )
 
         st.subheader("👋 About me")
-        st.markdown(
-            """
-            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px;
-                        padding:20px 24px; font-size:0.9rem; line-height:1.9; color:#334155;">
-                ■ 컴퓨터공학 학사 / 수학교육 석사 / AI융합교육 석사과정<br><br>
-                학생의 사고력과 개념적 이해를 이끌어내는 수업을 실천하고 있으며<br>
-                질문하고, 탐구하고, 기록을 통해 성장하는 과정 중심 수업을 지향합니다.<br><br>
-                #의미 중심 사고 &nbsp; #F 감성 + T 논리의 공존 &nbsp; #섬세함 vs 예민함<br>
-                #감정의 깊이 &nbsp; #이지적 긴장감 &nbsp; 인간적인 허점
-            </div>
-            """,
-            unsafe_allow_html=True,
+        st.text_area(
+            "자기소개",
+            value="""■ 컴퓨터공학 학사 / 수학교육 석사 / AI융합교육 석사과정
+
+학생의 사고력과 개념적 이해를 이끌어내는 수업을 실천하고 있으며
+질문하고, 탐구하고, 기록을 통해 성장하는 과정 중심 수업을 지향합니다.
+
+#의미 중심 사고 #F 감성 + T 논리의 공존 #섬세함 vs 예민함
+#감정의 깊이 #이지적 긴장감인간적인 허점
+""",
+            height=180,
+            label_visibility="collapsed",
         )
 
     # ── 연락처 카드 ───────────────────────────────────────────────
@@ -85,13 +78,11 @@ def render():
                     border-radius:12px; padding:16px; text-align:center;">
                     <div style="font-size:1.8rem;">{icon}</div>
                     <div style="font-size:0.78rem; color:#64748b; margin:4px 0;">{label}</div>
-                    <div style="font-weight:600; font-size:0.85rem; color:{color};
-                                word-break:break-all;">{value}</div>
+                    <div style="font-weight:600; font-size:0.9rem; color:{color};">{value}</div>
                 </div>""",
                 unsafe_allow_html=True,
             )
 
-    contact_card(c1, "📧", "이메일",   "scatchi@sookimyung.ac.kr", "#3b82f6")
-    contact_card(c2, "📸", "인스타",   "instagram.com/gussam@",    "#e1306c")
-    contact_card(c3, "📝", "블로그",   "blog.naver.com/scatchi",   "#ec4899")
-    contact_card(c4, "🏫", "소속",     "숙명여자대학교",             "#8b5cf6")
+    contact_card(c1, "📧", "이메일", "scatchi@sookimyung.ac.kr", "#3b82f6")
+    contact_card(c2, "💼", "인스타", "https://www.instagram.com/gussam@", "#0ea5e9")
+    contact_card(c3, "📝", "블로그", "https://blog.naver.com/scatchi", "#ec4899")
