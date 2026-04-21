@@ -77,6 +77,7 @@ def render():
             """
             <p style="color:#333;font-size:0.95rem;line-height:1.9;">
             본 연구는 <strong>「2023 청소년 금융이해력 및 금융생활실태 조사」</strong> 데이터를 활용했습니다.
+            (출처 : 한국아동 청소년 데이터 아카이브 https://www.nypi.re.kr/archive/mps) 
             이 데이터는 전국 중·고등학생을 대상으로 금융 지식, 금융 행위, 부모 및 학교 금융교육 경험,
             금융 웰빙 수준 등을 측정한 대규모 설문조사입니다.
             </p>
