@@ -30,7 +30,7 @@ def render():
             <div style="position:relative;">
                 <p style="color:#e8c4b0; margin:0 0 8px; font-size:0.8rem; font-weight:600;
                            letter-spacing:3px; text-transform:uppercase;">
-                    데이터 분석 연구 보고서 · 2023 청소년 금융이해력 조사
+                    Streamlit 기반 데이터 분석 연구보고서 웹앱 구현 · 2023 청소년 금융이해력 조사
                 </p>
                 <h1 style="color:white; margin:0 0 10px; font-size:1.75rem; line-height:1.4; font-weight:800;">
                     📊 중·고등학생의 부모 금융교육이<br>
@@ -76,7 +76,7 @@ def render():
         st.markdown(
             """
             <p style="color:#333;font-size:0.95rem;line-height:1.9;">
-            본 연구는 <strong>「2023 청소년 금융이해력 및 금융생활실태 조사」</strong> 데이터를 활용합니다.
+            본 연구는 <strong>「2023 청소년 금융이해력 및 금융생활실태 조사」</strong> 데이터를 활용했습니다.
             이 데이터는 전국 중·고등학생을 대상으로 금융 지식, 금융 행위, 부모 및 학교 금융교육 경험,
             금융 웰빙 수준 등을 측정한 대규모 설문조사입니다.
             </p>
@@ -128,7 +128,7 @@ def render():
                         padding:16px 20px;margin-top:16px;font-size:0.88rem;color:#3a2010;line-height:1.8;">
                 세 독립변수는 각각 <strong>가정(비형식)</strong>, <strong>학교(형식)</strong>,
                 <strong>심리적 상태</strong>라는 서로 다른 층위를 대표하여,
-                다중회귀분석 시 각 영역의 독립적 기여도를 깔끔하게 비교할 수 있습니다.
+                다중회귀분석 시 각 영역의 독립적 기여도를 깔끔하게 비교할 수 있었습니다.
             </div>
             """,
             unsafe_allow_html=True,
@@ -149,7 +149,7 @@ def render():
             <p style="color:#333;font-size:0.95rem;line-height:1.9;">
             본 연구는 청소년의 금융이해력에 영향을 미치는 교육적·심리적 요인을 규명하기 위해 설계되었습니다.
             가정과 학교라는 두 가지 금융교육 경로와, 개인 심리 상태로서의 금융 웰빙이
-            금융이해력에 미치는 상대적 효과를 체계적으로 분석합니다.
+            금융이해력에 미치는 상대적 효과를 체계적으로 분석하였습니다.
             </p>
             """,
             unsafe_allow_html=True,
@@ -205,7 +205,7 @@ def render():
         st.markdown(
             '<p style="color:#333;font-size:0.95rem;line-height:1.9;margin-bottom:24px;">'
             '데이터 탐색부터 회귀분석까지 총 4단계의 체계적인 분석 절차를 거쳤습니다. '
-            'Python 기반의 통계 라이브러리(pandas, statsmodels, seaborn)를 활용하였습니다.</p>',
+            '구글코랩-Python 기반의 통계 라이브러리(pandas, statsmodels, seaborn)를 활용하였습니다.</p>',
             unsafe_allow_html=True,
         )
         for num, title, desc in [
