@@ -24,7 +24,7 @@ st.markdown(
 
 # ── 공통 사이드바 ──
 with st.sidebar:
-    st.markdown("## 🎓 데이타분석")
+    st.markdown("## 🎓 Streamlit 기반 데이터 분석 웹앱 구현")
     st.caption("AI융합교육전공 2542100 구정숙")
     st.divider()
 
