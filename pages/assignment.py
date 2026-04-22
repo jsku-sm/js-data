@@ -243,7 +243,7 @@ def render():
             '<div style="background:#faf8f4;border:1px solid #d4c9b8;border-radius:6px;'
             'padding:12px 18px;font-size:0.83rem;color:#7a6f63;margin-top:4px;">'
             '▲ <strong>그림 1.</strong> 금융이해력 각 문항(Q02~Q14) 점수 분포 (상자 그림). '
-            'Q02~Q08(금융지식)은 낮은 점수대에 집중되며, Q11~Q14(금융행위)는 상대적으로 분포 범위가 넓습니다.</div>',
+            'Q02~Q08(금융지식)은 낮은 점수대에 집중되며, Q11~Q14(금융행위)는 상대적으로 분포 범위가 넓습니다.용돈 관리나 저축 같은 실제 행동은 어떤 학생은 잘 하고, 어떤 학생은 전혀 안 한다는 것을 보여줍니다.</div>',
             unsafe_allow_html=True,
         )
 
